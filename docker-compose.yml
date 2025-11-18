@@ -6,24 +6,24 @@ services:
       - "6379:6379"
 
   api:
-    build: .
+    build: ./backend
     container_name: async-api
     depends_on:
       - redis
     env_file:
-      - .env
+      - ./backend/.env
     command: uvicorn main:app --host 0.0.0.0 --port 8123
     ports:
       - "8123:8123"
     restart: unless-stopped
 
   worker:
-    build: .
+    build: ./backend
     container_name: async-worker
     depends_on:
       - redis
     env_file:
-      - .env
+      - ./backend/.env
     # -P solo is safe everywhere, and especially required for Windows native runs.
     command: celery -A app.celery_app.celery_app worker --loglevel=info -P solo
     restart: unless-stopped
@@ -38,5 +38,19 @@ services:
     command: ["celery", "flower", "--port=5555"]
     ports:
       - "5555:5555"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8123
+    container_name: async-frontend
+    depends_on:
+      - api
+    environment:
+      - VITE_API_BASE_URL=http://api:8123
+    ports:
+      - "4173:80"
     restart: unless-stopped
 
