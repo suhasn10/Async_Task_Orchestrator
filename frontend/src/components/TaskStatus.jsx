@@ -90,7 +90,10 @@ const TaskStatus = ({ taskId }) => {
       <div className="status-card empty">
         <p className="eyebrow subtle">Status monitor</p>
         <h2>No task selected</h2>
-        <p>Submit a task to begin polling the FastAPI status endpoint.</p>
+        <p>
+          Provide or submit a task ID to begin polling the FastAPI status
+          endpoint.
+        </p>
       </div>
     );
   }
