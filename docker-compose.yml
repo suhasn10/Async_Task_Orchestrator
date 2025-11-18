@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:7
+    container_name: async-redis
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    container_name: async-api
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    command: uvicorn main:app --host 0.0.0.0 --port 8123
+    ports:
+      - "8123:8123"
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: async-worker
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    # -P solo is safe everywhere, and especially required for Windows native runs.
+    command: celery -A app.celery_app.celery_app worker --loglevel=info -P solo
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower:0.9.7
+    container_name: async-flower
+    depends_on:
+      - redis
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    command: ["celery", "flower", "--port=5555"]
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
+
