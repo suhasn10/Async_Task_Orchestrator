@@ -1,5 +1,3 @@
-# app/tasks.py
-
 from typing import Any, Dict
 import time
 import logging
