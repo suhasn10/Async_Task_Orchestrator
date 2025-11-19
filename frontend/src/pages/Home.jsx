@@ -108,29 +108,6 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="flow-section">
-        <div className="section-heading">
-          <h2>End-to-End Flow</h2>
-          <p>
-            Reference architecture that mirrors the provided diagram. Each card
-            represents a hand-off inside the orchestrator and helps your team
-            reason about reliability in production.
-          </p>
-        </div>
-        <div className="flow-grid">
-          {FLOW_STEPS.map((step, index) => (
-            <article key={step.title} className="flow-card">
-              <span className="flow-step-index">{index + 1}</span>
-              <div>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-                <p className="flow-action">{step.action}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="monitoring-section">
         <div>
           <h2>Operational Visibility</h2>

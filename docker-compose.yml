@@ -1,13 +1,14 @@
 services:
   redis:
     image: redis:7
-    container_name: async-redis
+    container_name: ato-redis
     ports:
       - "6379:6379"
 
   api:
     build: ./backend
-    container_name: async-api
+    image: ato-api         
+    container_name: ato-api
     depends_on:
       - redis
     env_file:
@@ -19,18 +20,18 @@ services:
 
   worker:
     build: ./backend
-    container_name: async-worker
+    image: ato-worker       
+    container_name: ato-worker
     depends_on:
       - redis
     env_file:
       - ./backend/.env
-    # -P solo is safe everywhere, and especially required for Windows native runs.
     command: celery -A app.celery_app.celery_app worker --loglevel=info -P solo
     restart: unless-stopped
 
   flower:
-    image: mher/flower:0.9.7
-    container_name: async-flower
+    image: mher/flower:0.9.7   
+    container_name: ato-flower
     depends_on:
       - redis
     environment:
@@ -44,8 +45,9 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: http://localhost:8123
-    container_name: async-frontend
+        VITE_API_BASE_URL: http://api:8123
+    image: ato-frontend    
+    container_name: ato-frontend
     depends_on:
       - api
     environment:
@@ -53,4 +55,3 @@ services:
     ports:
       - "4173:80"
     restart: unless-stopped
-
