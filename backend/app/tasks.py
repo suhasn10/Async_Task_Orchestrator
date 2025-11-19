@@ -4,51 +4,66 @@ import logging
 
 from .celery_app import celery_app
 from .database import SessionLocal
-from . import models
+from .models import ProcessedTask
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
+@celery_app.task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_jitter=True,
+    retry_kwargs={"max_retries": 3},
+)
 def process_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Celery task: process incoming data and persist result to PostgreSQL.
-    """
     task_id = self.request.id
-    logger.info(f"Processing data for task {task_id} with keys: {list(data.keys())}")
+    logger.info(f"[Task {task_id}] Started")
+    if data.get("force_fail") is True:
+        logger.warning(f"[Task {task_id}] Force-fail flag detected. Raising error for retry test.")
+        raise RuntimeError("Intentional failure for retry testing")
 
-    # Simulate some processing
-    time.sleep(5)
+    time.sleep(3)
 
     processed_items = len(data)
     result_message = f"Processed {processed_items} items"
 
     result = {
-        "status": "success",
         "task_id": task_id,
+        "status": "SUCCESS",
         "processed_items": processed_items,
-        "result": result_message,
+        "result_message": result_message,
     }
 
-    # Save to PostgreSQL
     db = SessionLocal()
     try:
-        db_obj = models.ProcessedTask(
-            task_id=task_id,
-            status=result["status"],
-            input_data=data,
-            processed_items=processed_items,
-            result_message=result_message,
+        existing = (
+            db.query(ProcessedTask)
+            .filter(ProcessedTask.task_id == task_id)
+            .first()
         )
-        db.add(db_obj)
-        db.commit()
-        logger.info(f"Saved processed result for task {task_id} into PostgreSQL")
-    except Exception as e:
+
+        if not existing:
+            db_entry = ProcessedTask(
+                task_id=task_id,
+                status=result["status"],
+                input_data=data,
+                processed_items=processed_items,
+                result_message=result_message,
+            )
+            db.add(db_entry)
+            db.commit()
+            logger.info(f"[Task {task_id}] Result stored")
+        else:
+            logger.info(f"[Task {task_id}] Already processed — skipping DB write")
+
+    except Exception as exc:
         db.rollback()
-        logger.exception(f"Failed to save result for task {task_id} into PostgreSQL")
-        # propagate error so Celery marks task as FAILURE
-        raise e
+        logger.error(f"[Task {task_id}] Database error: {exc} — retrying...")
+        raise self.retry(exc=exc)
+
     finally:
         db.close()
 
+    logger.info(f"[Task {task_id}] Completed")
     return result

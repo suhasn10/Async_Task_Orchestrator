@@ -45,28 +45,19 @@ def enqueue_task(payload: ProcessDataRequest) -> TaskStatusResponse:
 
 @router.get("/task/{task_id}", response_model=TaskStatusResponse, summary="Get Task Status")
 def get_task_status(task_id: str, db: Session = Depends(get_db)) -> TaskStatusResponse:
-    """
-    Get the current status of a previously queued task.
-    Combines Celery task state with the final result stored in PostgreSQL.
-    """
+
     async_result = celery_app.AsyncResult(task_id)
 
-    if async_result is None:
-        raise HTTPException(status_code=404, detail="Invalid task_id")
+    celery_state = async_result.state
 
-    state = async_result.state
-    message = ""
-    error: str | None = None
+    db_record = db.query(ProcessedTask).filter(ProcessedTask.task_id == task_id).first()
 
-    # Try to fetch processed result from PostgreSQL
-    db_record = (
-        db.query(ProcessedTask)
-        .filter(ProcessedTask.task_id == task_id)
-        .first()
-    )
+    result_obj = None
+    state = celery_state
+    error = None
 
-    result_obj: ProcessedTaskResult | None = None
     if db_record:
+        state = db_record.status.upper()
         result_obj = ProcessedTaskResult(
             task_id=db_record.task_id,
             status=db_record.status,
@@ -74,17 +65,17 @@ def get_task_status(task_id: str, db: Session = Depends(get_db)) -> TaskStatusRe
             result_message=db_record.result_message,
         )
 
-    if state == "PENDING":
-        message = "Task is waiting in the queue."
-    elif state == "STARTED":
-        message = "Task is currently running."
-    elif state == "SUCCESS":
-        message = "Task completed successfully."
-    elif state == "FAILURE":
-        message = "Task failed."
+    message_map = {
+        "PENDING": "Task is waiting in the queue.",
+        "STARTED": "Task is currently running.",
+        "SUCCESS": "Task completed successfully.",
+        "FAILURE": "Task failed."
+    }
+
+    message = message_map.get(state, f"Task is in state: {state}")
+
+    if celery_state == "FAILURE":
         error = str(async_result.info)
-    else:
-        message = f"Task is in state: {state}"
 
     return TaskStatusResponse(
         task_id=task_id,
