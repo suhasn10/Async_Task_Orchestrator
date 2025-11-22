@@ -26,7 +26,7 @@ services:
       - redis
     env_file:
       - ./backend/.env
-    command: celery -A app.celery_app.celery_app worker --loglevel=info -P solo
+    command: celery -A app.celery_app.celery_app worker --loglevel=info --concurrency=5 -P solo
     restart: unless-stopped
 
   flower:
@@ -45,7 +45,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: http://api:8123
+        VITE_API_BASE_URL: http://localhost:8123
     image: ato-frontend    
     container_name: ato-frontend
     depends_on:

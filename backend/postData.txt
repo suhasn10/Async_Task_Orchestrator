@@ -1,0 +1,89 @@
+{
+  "data": {
+    "user_id": 1,
+    "items": [10, 20, 30],
+    "note": "Test run"
+  }
+}
+
+
+
+{
+  "data": {
+    "user_id": 42,
+    "order_id": "ORD-987654",
+    "items": [
+      {"sku": "P001", "qty": 2, "price": 199.99},
+      {"sku": "P002", "qty": 1, "price": 499.99}
+    ],
+    "payment_method": "UPI",
+    "customer_notes": "Deliver after 6 PM"
+  }
+}
+
+
+{
+  "data": {
+    "user_id": 215,
+    "metadata": {
+      "source": "mobile_app",
+      "version": "3.4"
+    },
+    "scores": [99, 85, 77, 91],
+    "active": true
+  }
+}
+
+
+{
+  "data": {
+    "device_id": "SENSOR-1202",
+    "temperature": 21.7,
+    "humidity": 55,
+    "location": {
+      "lat": 12.9716,
+      "long": 77.5946
+    },
+    "timestamp": "2025-11-17T10:32:00Z"
+  }
+}
+
+
+{
+  "data": {
+    "name": "John Doe",
+    "student_id": "STU-11235",
+    "subjects": ["Math", "Science", "Computers"],
+    "grades": {
+      "Math": 89,
+      "Science": 91,
+      "Computers": 95
+    }
+  }
+}
+
+
+{
+  "data": {
+    "id": "test-123",
+    "values": [1, 2, 3, 4, 5],
+    "tags": ["fastapi", "celery", "redis", "postgres"],
+    "valid": true
+  }
+}
+
+
+
+{
+  "data": {
+    "batch_id": "BATCH_001",
+    "values": [1,2,3,4,5,6,7,8,9,10],
+    "description": "Large batch processing test",
+    "attributes": {
+      "priority": "high",
+      "type": "bulk",
+      "requested_by": "automation"
+    }
+  }
+}
+

@@ -19,9 +19,6 @@ logger = logging.getLogger(__name__)
 def process_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
     task_id = self.request.id
     logger.info(f"[Task {task_id}] Started")
-    if data.get("force_fail") is True:
-        logger.warning(f"[Task {task_id}] Force-fail flag detected. Raising error for retry test.")
-        raise RuntimeError("Intentional failure for retry testing")
 
     time.sleep(3)
 
