@@ -24,7 +24,7 @@ const NavBar = () => {
               Flow Runner
             </p>
             <h1 className="text-lg font-bold tracking-tight text-slate-900">
-              Async Orchestrator
+              Task Orchestrator
             </h1>
           </div>
         </div>
